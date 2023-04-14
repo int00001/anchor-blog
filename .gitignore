@@ -1,0 +1,11 @@
+
+.env
+.log
+.txt
+.anchor
+.DS_Store
+target
+**/*.rs.bk
+node_modules
+build
+test-ledger
