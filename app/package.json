@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node -r tsconfig-paths/register build/app/src/index.js",
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "init": "ts-node -r tsconfig-paths/register build/app/src/init-blog.js",
+    "post": "ts-node -r tsconfig-paths/register build/app/src/create-post.js",
+    "fetch": "ts-node -r tsconfig-paths/register build/app/src/fetch.js"
   },
   "author": "int",
   "license": "LicenseRef-LICENSE",
