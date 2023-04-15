@@ -10,28 +10,60 @@ declare_id!("CMF1K4xXdEFzz7G3V7y2KW4uBfnT7u2sXn9RBq99qgGq");
 pub mod anchor_blog {
     use super::*;
 
-    pub fn initialize_blog(ctx: Context<InitializeBlog>, blog: Blog) -> Result<()> {
-        ctx.accounts.blog_account.set_inner(blog);
+    // no ix data needed to initialize
+    pub fn initialize_blog(ctx: Context<InitializeBlog>) -> Result<()> {
+        // set blog account authority and post count
+        let new_blog = &mut ctx.accounts.blog_account;
+        new_blog.authority = ctx.accounts.authority.key();
+        new_blog.post_count = 0;
+
+        msg!(
+            "blog created for {} post count {}",
+            new_blog.authority,
+            new_blog.post_count
+        );
+
         Ok(())
     }
 
-    pub fn create_post(ctx: Context<CreatePost>, post: Post) -> Result<()> {
-        if post.title.len() > 20 || post.content.len() > 50 {
+    // ix data is post data
+    pub fn create_post(
+        ctx: Context<CreatePost>,
+        author: Pubkey,
+        slug: String,
+        title: String,
+        content: String,
+    ) -> Result<()> {
+        if title.len() > 20 || content.len() > 50 {
             return err!(ErrorCode::InvalidContentOrTitle);
         }
 
-        ctx.accounts.post_account.set_inner(post);
+        // set post account data
+        let new_post = &mut ctx.accounts.post_account;
+        new_post.author = author;
+        new_post.slug = slug;
+        new_post.title = title;
+        new_post.content = content;
+
+        // update blog's post count
         ctx.accounts.blog_account.post_count += 1;
+
+        // note: shouldn't post account store blog account it belongs to?
+        // ..
+
+        msg!(
+            "post created for blog. post count {}",
+            ctx.accounts.blog_account.post_count
+        );
 
         Ok(())
     }
 }
 
 #[derive(Accounts)]
-#[instruction()]
 pub struct InitializeBlog<'info> {
     #[account(
-        init,
+        init_if_needed,
         seeds = [
             b"blog".as_ref(),
             authority.key().as_ref()
@@ -71,7 +103,6 @@ pub struct CreatePost<'info> {
 #[account]
 pub struct Blog {
     pub authority: Pubkey,
-    pub bump: u8,
     pub post_count: u8,
 }
 
